@@ -118,7 +118,8 @@ export const handleSendMessage =async(req,res)=>{
       from:from.userId,
       to:to.userId,
       messageBody:message,
-      timestamp:`${(new Date()).getHours()}:${(new Date()).getMinutes()}:${(new Date()).getSeconds()}`
+      Date: (new Date()),
+      timestamp:`${(new Date()).getHours()}:${(new Date()).getMinutes()}`
     })
     res.status(200).json({message:"Message saved successfully."});
 
@@ -134,8 +135,15 @@ export const handleGetMessages = async(req,res)=>{
     const {from,to} = req.body;
     const myMessages= await Message.find({from,to});
     const receivedMessages = await Message.find({from:to,to:from});
-    const messageList = (myMessages.concat(receivedMessages)).sort();
-    res.status(200).json(messageList)
+    // sort messages based on date
+    const messageList = (myMessages.concat(receivedMessages))
+    .sort((p1, p2) => {
+      const date1 = new Date(p1.Date)
+      const date2 = new Date(p2.Date)
+      return (date1 > date2) ? 1 : (date1 < date2) ? -1 : 0
+    });
+    
+    res.status(200).json({messageList})
 
   } catch (error) {
     console.log(error)

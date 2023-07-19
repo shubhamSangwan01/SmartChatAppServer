@@ -6,6 +6,7 @@ const MessageSchema = new mongoose.Schema({
   to:String,
   timestamp:String,
   messageBody:String,
+  Date:Date,
 });
 
 const Message = mongoose.model("Message", MessageSchema);

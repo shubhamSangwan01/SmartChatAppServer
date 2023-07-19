@@ -35,7 +35,7 @@ try {
       const conn = await mongoose.connect(
         "mongodb+srv://ashish123:ashish123@chatapp.ie5n16j.mongodb.net/?retryWrites=true&w=majority"
       );
-      // await Message.deleteMany();
+       //await Message.deleteMany();
       console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
       console.log(error);
