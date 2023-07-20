@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import Message from "../models/message.js";
+import Group from "../models/groups.js";
 
 export const handleSignup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -175,17 +176,16 @@ export const handleAddUnreadUser = async (req, res) => {
   }
 };
 
-export const handleGetUnreadUsers = async(req,res)=>{
+export const handleGetUnreadUsers = async (req, res) => {
   try {
-    const {userId}= req.params;
-    const user = await User.findOne({userId:userId});
-    console.log(user)
-    res.status(200).json({unreadUsers:user.unreadUsers});
-
+    const { userId } = req.params;
+    const user = await User.findOne({ userId: userId });
+    console.log(user);
+    res.status(200).json({ unreadUsers: user.unreadUsers });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
 export const handleChangeUnreadUsers = async (req, res) => {
   try {
@@ -196,11 +196,11 @@ export const handleChangeUnreadUsers = async (req, res) => {
       (user) => user.userId !== from.userId
     );
 
-   const data= await User.updateOne(
+    const data = await User.updateOne(
       { userId: to.userId },
       { unreadUsers: updatedUnreadUsers }
     );
-    console.log(data)
+    console.log(data);
     res.status(200).json({
       message: `${from.name} removed from ${to.userId}'s unreadUsers.`,
     });
@@ -208,3 +208,18 @@ export const handleChangeUnreadUsers = async (req, res) => {
     console.log(error);
   }
 };
+
+export const handleCreateGroup = async (req, res) => {
+  try {
+    const { groupName, groupDescription, groupMembers } = req.body;
+   // console.log(req.body.groupInfo)
+    const groupId = uuidv4();
+    await Group.create({ groupName, groupDescription, groupMembers,groupId });
+    res
+      .status(200)
+      .json({ message: `Group ${groupName} created successfully.` });
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const handleGetGroups = async (req, res) => {};

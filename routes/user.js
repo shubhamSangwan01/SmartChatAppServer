@@ -2,6 +2,8 @@ import express from "express";
 import {
   handleAddUnreadUser,
   handleChangeUnreadUsers,
+  handleCreateGroup,
+  handleGetGroups,
   handleGetMessages,
   handleGetRescentChats,
   handleGetUnreadUsers,
@@ -26,7 +28,9 @@ routes.post("/savemessage", handleSendMessage);
 routes.post("/messages", handleGetMessages);
 routes.post("/getrescentchats", handleGetRescentChats);
 routes.post("/unreaduser", handleAddUnreadUser);
-routes.get('/unreadusers/:userId',handleGetUnreadUsers);
-routes.post('/updateunreadusers',handleChangeUnreadUsers)
+routes.get("/unreadusers/:userId", handleGetUnreadUsers);
+routes.post("/updateunreadusers", handleChangeUnreadUsers);
+routes.post("/creategroup", handleCreateGroup);
+routes.get("/getgroups/:userId", handleGetGroups);
 
 export default routes;

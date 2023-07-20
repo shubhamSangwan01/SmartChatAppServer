@@ -5,6 +5,7 @@ const UserSchema = new mongoose.Schema({
   userId: String,
   email: String,
   chatsList: [Object],
+  groups:[Object],
   blocked: [Object],
   unreadUsers: [Object],
   password: {
