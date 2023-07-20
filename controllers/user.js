@@ -1,22 +1,21 @@
 import User from "../models/user.js";
-import bcrypt from 'bcrypt'
-import { v4 as uuidv4 } from 'uuid';
-import jwt from 'jsonwebtoken'
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 import Message from "../models/message.js";
 
+export const handleSignup = async (req, res) => {
+  const { name, email, password } = req.body;
 
-export const handleSignup= async (req,res)=>{
-    const { name, email, password } = req.body;
-    
-    console.log(req.body)
-    const userId = uuidv4();
+  // console.log(req.body)
+  const userId = uuidv4();
 
   const salt = await bcrypt.genSalt(10);
 
   const hashedPassword = await bcrypt.hash(password, salt);
   const emailCount = await User.find({ email }).count();
 
- if (emailCount !== 0) {
+  if (emailCount !== 0) {
     res.status(200).json({ message: "Email already registered!", status: 400 });
   } else {
     const user = await User.create({
@@ -28,136 +27,184 @@ export const handleSignup= async (req,res)=>{
     res
       .status(200)
       .json({ message: "User Registered Successfully!", status: 200 });
-
-
-}
-}
-
-export const handleLogin = async (req,res)=>{
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-  
-    if (!user) {
-      res.send({ message: "User not registered !", status: 400 });
-    } else {
-      const isMatch = await bcrypt.compare(password, user.password);
-  
-      if (isMatch) {
-        const token = jwt.sign(
-          {
-            username: user.name,
-            email: user.email,
-            id:user.userId
-          },
-          'ashish123'
-        );
-  
-        res.send({
-          message: "Login Successful",
-          token: token,
-          status: 200,
-          user: user,
-        });
-      } else {
-        res.send({ status: 400, message: "Incorrect Password" });
-      }
-    }
-}
-
-export const handleGetUserInfo = async (req,res)=>{
-
-}
-
-export const handleSearchUser= async (req,res)=>{
-  
-  const {searchFriends}=req.body;
-  try {
-
-    const users = await User.find({ email: { $regex: searchFriends, $options: 'i' } });
-    if(users.length==0){
-      res.status(202).json({message:"User not found."})
-    }
-    else{
-      res.status(200).json({users})
-    }
-    
-  } catch (error) {
-    console.log(error)
   }
+};
 
-}
+export const handleLogin = async (req, res) => {
+  const { email, password } = req.body;
 
-export const handleSendMessage =async(req,res)=>{
-  const {from,to,message} = req.body;
-  console.log(req.body)
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    res.send({ message: "User not registered !", status: 400 });
+  } else {
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (isMatch) {
+      const token = jwt.sign(
+        {
+          username: user.name,
+          email: user.email,
+          id: user.userId,
+        },
+        "ashish123"
+      );
+
+      res.send({
+        message: "Login Successful",
+        token: token,
+        status: 200,
+        user: user,
+      });
+    } else {
+      res.send({ status: 400, message: "Incorrect Password" });
+    }
+  }
+};
+
+export const handleGetUserInfo = async (req, res) => {};
+
+export const handleSearchUser = async (req, res) => {
+  const { searchFriends } = req.body;
+  try {
+    const users = await User.find({
+      email: { $regex: searchFriends, $options: "i" },
+    });
+    if (users.length == 0) {
+      res.status(202).json({ message: "User not found." });
+    } else {
+      res.status(200).json({ users });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleSendMessage = async (req, res) => {
+  const { from, to, message } = req.body;
+  //console.log(req.body);
   // save the message in database
   try {
-      
-    const fromUser = await User.findOne({userId:from?.userId})
-     const toUser= await User.findOne({userId:to?.userId})
-    
-     const fromChatList = fromUser.chatsList;
-     const toChatList = toUser.chatsList;
-     console.log(toChatList,fromChatList)
+    const fromUser = await User.findOne({ userId: from?.userId });
+    const toUser = await User.findOne({ userId: to?.userId });
 
-     if(!fromChatList.some(chat=>chat.userId===toUser.userId)){
-       fromChatList.push({name:toUser.name,userId:toUser.userId});
-     }
-     if(!toChatList.some(chat=>chat.userId===fromUser.userId)){
-      toChatList.push({name:fromUser.name,userId:fromUser.userId});
-     }
+    const fromChatList = fromUser.chatsList;
+    const toChatList = toUser.chatsList;
+    // console.log(toChatList, fromChatList);
 
-     await User.updateOne({userId:fromUser.userId},{chatsList:fromChatList})
-     await User.updateOne({userId:toUser.userId},{chatsList:toChatList})
-     
-     
-    
+    if (!fromChatList.some((chat) => chat.userId === toUser.userId)) {
+      fromChatList.push({ name: toUser.name, userId: toUser.userId });
+    }
+    if (!toChatList.some((chat) => chat.userId === fromUser.userId)) {
+      toChatList.push({ name: fromUser.name, userId: fromUser.userId });
+    }
+
+    await User.updateOne(
+      { userId: fromUser.userId },
+      { chatsList: fromChatList }
+    );
+    await User.updateOne({ userId: toUser.userId }, { chatsList: toChatList });
+
     await Message.create({
-      users:[from.userId,to.userId],
-      from:from.userId,
-      to:to.userId,
-      messageBody:message,
-      Date: (new Date()),
-      timestamp:`${(new Date()).getHours()}:${(new Date()).getMinutes()}`
-    })
-    res.status(200).json({message:"Message saved successfully."});
-
-  } catch (error) {
-    console.log(error)
-  }
- 
-}
-
-export const handleGetMessages = async(req,res)=>{
-  
-  try {
-    const {from,to} = req.body;
-    const myMessages= await Message.find({from,to});
-    const receivedMessages = await Message.find({from:to,to:from});
-    // sort messages based on date
-    const messageList = (myMessages.concat(receivedMessages))
-    .sort((p1, p2) => {
-      const date1 = new Date(p1.Date)
-      const date2 = new Date(p2.Date)
-      return (date1 > date2) ? 1 : (date1 < date2) ? -1 : 0
+      users: [from.userId, to.userId],
+      from: from.userId,
+      to: to.userId,
+      messageBody: message,
+      Date: new Date(),
+      timestamp: `${new Date().getHours()}:${new Date().getMinutes()}`,
     });
-    
-    res.status(200).json({messageList})
-
+    res.status(200).json({ message: "Message saved successfully." });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
-}
+};
 
-export const handleGetRescentChats =async (req,res)=>{
+export const handleGetMessages = async (req, res) => {
   try {
-    const userId = req.body.user.userId
-     const user = await User.findOne({userId});
-     console.log(user)
-     res.status(200).json({rescentChats:user.chatsList})
+    const { from, to } = req.body;
+    const myMessages = await Message.find({ from, to });
+    const receivedMessages = await Message.find({ from: to, to: from });
+    // sort messages based on date
+    const messageList = myMessages.concat(receivedMessages).sort((p1, p2) => {
+      const date1 = new Date(p1.Date);
+      const date2 = new Date(p2.Date);
+      return date1 > date2 ? 1 : date1 < date2 ? -1 : 0;
+    });
+
+    res.status(200).json({ messageList });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleGetRescentChats = async (req, res) => {
+  try {
+    const userId = req.body.user.userId;
+    const user = await User.findOne({ userId });
+    // console.log(user);
+    res.status(200).json({ rescentChats: user.chatsList });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+//! We ll receive from and to user , since we are handling unread chats, so we add from user in to user's unreadUsers
+export const handleAddUnreadUser = async (req, res) => {
+  try {
+    const { from, to } = req.body;
+
+    const toUser = await User.findOne({ userId: to.userId });
+    const unreadUsers = toUser.unreadUsers;
+    const isFromPresent = toUser.unreadUsers.some(
+      (user) => user.userId === from.userId
+    );
+
+    if (isFromPresent) {
+      res.status(200).json({ message: "Done" });
+    } else {
+      unreadUsers.push({ userId: from.userId });
+
+      await User.updateOne({ userId: to.userId }, { unreadUsers });
+
+      res
+        .status(200)
+        .json({ message: `${from.name} added in unreadUsers of ${to.name}.` });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleGetUnreadUsers = async(req,res)=>{
+  try {
+    const {userId}= req.params;
+    const user = await User.findOne({userId:userId});
+    console.log(user)
+    res.status(200).json({unreadUsers:user.unreadUsers});
+
   } catch (error) {
     console.log(error)
   }
-  
 }
+
+export const handleChangeUnreadUsers = async (req, res) => {
+  try {
+    const { from, to } = req.body;
+    const toUser = await User.findOne({ userId: to.userId });
+    const toUnreadUsers = toUser.unreadUsers;
+    const updatedUnreadUsers = toUnreadUsers.filter(
+      (user) => user.userId !== from.userId
+    );
+
+   const data= await User.updateOne(
+      { userId: to.userId },
+      { unreadUsers: updatedUnreadUsers }
+    );
+    console.log(data)
+    res.status(200).json({
+      message: `${from.name} removed from ${to.userId}'s unreadUsers.`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};

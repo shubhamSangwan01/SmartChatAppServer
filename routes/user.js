@@ -1,20 +1,32 @@
-import express from 'express'
-import {  handleGetMessages, handleGetRescentChats, handleGetUserInfo, handleLogin, handleSearchUser, handleSendMessage, handleSignup } from '../controllers/user.js';
+import express from "express";
+import {
+  handleAddUnreadUser,
+  handleChangeUnreadUsers,
+  handleGetMessages,
+  handleGetRescentChats,
+  handleGetUnreadUsers,
+  handleGetUserInfo,
+  handleLogin,
+  handleSearchUser,
+  handleSendMessage,
+  handleSignup,
+} from "../controllers/user.js";
 
 const routes = express.Router();
 
-routes.get('/',(req,res)=>{
-    res.send("Welcome to home route")
-})
+routes.get("/", (req, res) => {
+  res.send("Welcome to home route");
+});
 
-routes.post('/signup',handleSignup);
-routes.post('/login',handleLogin);
-routes.post('/getuserinfo',handleGetUserInfo);
-routes.post('/searchuser',handleSearchUser)
-routes.post('/savemessage',handleSendMessage);
-routes.post('/messages',handleGetMessages);
-routes.post('/getrescentchats',handleGetRescentChats);
+routes.post("/signup", handleSignup);
+routes.post("/login", handleLogin);
+routes.post("/getuserinfo", handleGetUserInfo);
+routes.post("/searchuser", handleSearchUser);
+routes.post("/savemessage", handleSendMessage);
+routes.post("/messages", handleGetMessages);
+routes.post("/getrescentchats", handleGetRescentChats);
+routes.post("/unreaduser", handleAddUnreadUser);
+routes.get('/unreadusers/:userId',handleGetUnreadUsers);
+routes.post('/updateunreadusers',handleChangeUnreadUsers)
 
-
-
-export default routes
+export default routes;

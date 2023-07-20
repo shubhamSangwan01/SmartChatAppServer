@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   name: String,
-  userId:String,
+  userId: String,
   email: String,
-  chatsList:[Object],
-  blocked:[Object],
-  unreadChats:Number,
+  chatsList: [Object],
+  blocked: [Object],
+  unreadUsers: [Object],
   password: {
     type: String,
   },
