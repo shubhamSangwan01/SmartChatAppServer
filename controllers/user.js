@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import Message from "../models/message.js";
 import Group from "../models/groups.js";
+import GroupChat from "../models/groupChat.js";
 
 export const handleSignup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -143,7 +144,7 @@ export const handleGetRescentChats = async (req, res) => {
     const userId = req.body.user.userId;
     const user = await User.findOne({ userId });
     // console.log(user);
-    res.status(200).json({ rescentChats: user.chatsList });
+    res.status(200).json({ rescentChats: user.chatsList,groups:user.groups });
   } catch (error) {
     console.log(error);
   }
@@ -180,7 +181,7 @@ export const handleGetUnreadUsers = async (req, res) => {
   try {
     const { userId } = req.params;
     const user = await User.findOne({ userId: userId });
-    console.log(user);
+    // console.log(user);
     res.status(200).json({ unreadUsers: user.unreadUsers });
   } catch (error) {
     console.log(error);
@@ -200,7 +201,7 @@ export const handleChangeUnreadUsers = async (req, res) => {
       { userId: to.userId },
       { unreadUsers: updatedUnreadUsers }
     );
-    console.log(data);
+    // console.log(data);
     res.status(200).json({
       message: `${from.name} removed from ${to.userId}'s unreadUsers.`,
     });
@@ -212,14 +213,86 @@ export const handleChangeUnreadUsers = async (req, res) => {
 export const handleCreateGroup = async (req, res) => {
   try {
     const { groupName, groupDescription, groupMembers } = req.body;
-   // console.log(req.body.groupInfo)
-    const groupId = uuidv4();
-    await Group.create({ groupName, groupDescription, groupMembers,groupId });
-    res
-      .status(200)
-      .json({ message: `Group ${groupName} created successfully.` });
+    // console.log(req.body.groupInfo)
+    const isGroupPresent = await Group.findOne({ groupName });
+    if (isGroupPresent !== null) {
+      res
+        .status(202)
+        .json({ message: `Group with name ${groupName} already exists.` });
+    } else {
+      const groupId = uuidv4();
+      await Group.create({
+        groupName,
+        groupDescription,
+        groupMembers,
+        groupId,
+      });
+      groupMembers.forEach(async (member) => {
+         await User.updateOne({userId:member.userId},{$push:{groups:{groupName,groupId}}})
+      });
+      await GroupChat.create({ groupId, groupChats: [] });
+      res
+        .status(200)
+        .json({ message: `Group ${groupName} created successfully.` });
+    }
   } catch (error) {
     console.log(error);
   }
 };
-export const handleGetGroups = async (req, res) => {};
+export const handleGetGroups = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const groups = await Group.find({
+      groupMembers: { $elemMatch: { userId } },
+    });
+    res.status(200).json({ groups });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleGetGroupChats = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await GroupChat.findOne({ groupId });
+    // console.log(group?.groupChats)
+    res.status(200).json({ groupChats: group?.groupChats });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleSendGroupMessage = async (req, res) => {
+  try {
+    const { groupId, from, message } = req.body;
+
+    const group = await GroupChat.findOne({ groupId });
+    const newGroupChats = group.groupChats;
+    newGroupChats.push({
+      message,
+      from,
+      timestamp: `${new Date().getHours()}:${new Date().getMinutes()}`,
+      date: new Date(),
+    });
+    console.log(newGroupChats);
+    const data = await GroupChat.updateOne(
+      { groupId },
+      { groupChats: newGroupChats }
+    );
+    console.log(data);
+    res.status(200).json({ message: "Group message sent successfully." });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const handleGetGroupMessages = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { groupChats } = await GroupChat.findOne({ groupId });
+    res.status(200).json({ groupChats });
+  } catch (error) {
+    console.log(error);
+  }
+};

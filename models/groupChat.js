@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const GroupSchema = new mongoose.Schema({
+const GroupChatSchema = new mongoose.Schema({
   groupId:String,
   groupChats:[Object],
 });
 
-const Group = mongoose.model("User", GroupSchema);
+const GroupChat = mongoose.model("GroupChat", GroupChatSchema);
 
-export default Group;
+export default GroupChat;
