@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import Message from "../models/message.js";
 import Group from "../models/groups.js";
 import GroupChat from "../models/groupChat.js";
+import Notification from "../models/notification.js";
 
 export const handleSignup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -16,10 +17,15 @@ export const handleSignup = async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, salt);
   const emailCount = await User.find({ email }).count();
+  const nameCount = await User.find({name}).count();
 
   if (emailCount !== 0) {
     res.status(200).json({ message: "Email already registered!", status: 400 });
-  } else {
+  }
+  else if(nameCount!==0){
+    res.status(200).json({message:"Username already registered!",status:400})
+  } 
+  else {
     const user = await User.create({
       name,
       userId,
@@ -296,3 +302,69 @@ export const handleGetGroupMessages = async (req, res) => {
     console.log(error);
   }
 };
+
+export const handleSaveNotification = async(req,res)=>{
+  try {
+    const {userId,notification} = req.body;   
+   const notific= await Notification.findOne({userId})
+   if(notific!==null){
+    await Notification.updateOne({userId},{$push:{notifications:notification}});
+   }
+   else{
+    await Notification.create({userId,notifications:[notification]});
+   }
+    
+    console.log(notification)
+    res.status(200).json({message:"notifications fetched"})
+    
+  } catch (error) {
+    console.log(error)
+  }
+  
+}
+
+export const handleRemoveNotification = async(req,res)=>{
+
+  try {
+    // from is a full user object here
+    const {userId,from} = req.body;
+    const notification = await Notification.findOne({userId});
+    const modifiedNotifications = notification.notifications.filter(notification=>notification.notifySender.userId!==from.userId);
+
+    await Notification.updateOne({userId},{notifications:modifiedNotifications});
+    res.status(200).json({message:"Notification removed successfully."})
+
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const handleRemoveAllNotifications = async(req,res)=>{
+  try {
+    // from is a full user object here
+    const {userId} = req.body;
+    await Notification.updateOne({userId},{notifications:[]});
+    res.status(200).json({message:"Notifications cleared successfully."})
+
+
+  } catch (error) {
+    console.log(error)
+  }
+
+}
+
+export const handleGetNotifications = async(req,res)=>{
+
+  try {
+    const {userId} = req.params;
+
+    const notification = await Notification.findOne({userId});
+    console.log(notification)
+    res.status(200).json(notification);
+    
+  } catch (error) {
+    
+    console.log(error)
+  }
+}

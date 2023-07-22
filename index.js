@@ -4,6 +4,10 @@ import cors from "cors";
 import mongoose from "mongoose";
 import routes from "./routes/user.js";
 import Message from "./models/message.js";
+import User from "./models/user.js";
+import Group from "./models/groups.js";
+import GroupChat from "./models/groupChat.js";
+import Notification from "./models/notification.js";
 
 const app = express();
 app.use(express.json());
@@ -35,7 +39,11 @@ try {
       const conn = await mongoose.connect(
         "mongodb+srv://ashish123:ashish123@chatapp.ie5n16j.mongodb.net/?retryWrites=true&w=majority"
       );
-       //await Message.deleteMany();
+      //  await Message.deleteMany();
+      //  await User.deleteMany();
+      //  await Group.deleteMany();
+      //  await GroupChat.deleteMany();
+      //  await Notification.deleteMany();
       console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
       console.log(error);

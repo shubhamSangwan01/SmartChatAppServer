@@ -7,10 +7,14 @@ import {
   handleGetGroupMessages,
   handleGetGroups,
   handleGetMessages,
+  handleGetNotifications,
   handleGetRescentChats,
   handleGetUnreadUsers,
   handleGetUserInfo,
   handleLogin,
+  handleRemoveAllNotifications,
+  handleRemoveNotification,
+  handleSaveNotification,
   handleSearchUser,
   handleSendGroupMessage,
   handleSendMessage,
@@ -38,5 +42,9 @@ routes.get("/getgroups/:userId", handleGetGroups);
 routes.get("/getgroupchats/:groupId", handleGetGroupChats);
 routes.post("/savegroupmessage", handleSendGroupMessage);
 routes.get("/getgroupmessages/:groupId", handleGetGroupMessages);
+routes.post('/savenotification',handleSaveNotification)
+routes.get('/getnotification/:userId',handleGetNotifications)
+routes.post('/removesinglenotification',handleRemoveNotification)
+routes.post('/clearnotification',handleRemoveAllNotifications)
 
 export default routes;
